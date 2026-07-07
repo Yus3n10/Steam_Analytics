@@ -40,28 +40,46 @@ else:
         "port": int(os.getenv("DB_PORT_LOCAL", 3306)),
     }
 
+def get_popular_app_ids():
+    """
+    Pulls two 'top 100' lists from SteamSpy (games trending in the last two
+    weeks, and all-time most-played) and combines them into one deduplicated
+    list of app IDs. This gives us a set of genuinely popular, currently
+    active games instead of guessing IDs by hand.
+
+    Note: SteamSpy's owner/sales numbers are rough estimates (Valve restricted
+    the data SteamSpy relies on years ago), but the app IDs themselves are
+    reliable -- we're just using SteamSpy to find WHICH games are popular,
+    not trusting its sales figures.
+    """
+    endpoints = [
+        {"request": "top100in2weeks"},  # trending right now
+        {"request": "top100forever"},   # all-time most played
+    ]
+
+    app_ids = set()
+    for params in endpoints:
+        try:
+            response = requests.get("https://steamspy.com/api.php", params=params, timeout=15)
+            response.raise_for_status()
+            data = response.json()
+            # SteamSpy returns a dict keyed by app_id, e.g. {"730": {...}, "570": {...}}
+            for app_id_str in data.keys():
+                app_ids.add(int(app_id_str))
+        except (requests.exceptions.RequestException, ValueError) as e:
+            print(f"  [!] Failed to fetch {params['request']} from SteamSpy: {e}")
+
+        time.sleep(2)  # be polite to SteamSpy's servers between calls
+
+    return list(app_ids)
+
+
 # --- CONFIG: which games to pull ---
-# Instead of pulling all ~150,000 Steam apps (way too slow for a first run),
-# we hand-pick a starter list of well-known app IDs. You can expand this list
-# later, or pull dynamically from GetAppList once your pipeline works.
-STARTER_APP_IDS = [
-    730,     # Counter-Strike 2
-    570,     # Dota 2
-    578080,  # PUBG: BATTLEGROUNDS
-    1172470, # Apex Legends
-    271590,  # GTA V
-    1091500, # Cyberpunk 2077
-    1245620, # Elden Ring
-    252490,  # Rust
-    1938090, # Call of Duty
-    1085660, # Destiny 2
-    440,     # Team Fortress 2
-    413150,  # Stardew Valley
-    1174180, # Red Dead Redemption 2
-    381210,  # Dead by Daylight
-    1085660, # Destiny 2 (dup intentionally removed below via set())
-]
-STARTER_APP_IDS = list(set(STARTER_APP_IDS))  # remove duplicates
+# Pulled dynamically from SteamSpy's top-played lists (see function above),
+# rather than hand-typed IDs. This will give roughly 150-200 unique games
+# since the two "top 100" lists overlap significantly.
+STARTER_APP_IDS = get_popular_app_ids()
+print(f"Pulled {len(STARTER_APP_IDS)} unique popular app IDs from SteamSpy.")
 
 
 def get_app_details(app_id):
