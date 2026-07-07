@@ -1,0 +1,37 @@
+name: Daily Steam Data Pull
+
+on:
+  schedule:
+    # Runs every day at 00:00 UTC. Adjust the cron time if you want a
+    # different hour — cron times are always in UTC, not your local time.
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # lets you also trigger it manually from the GitHub UI
+
+jobs:
+  fetch-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Recreate Aiven CA certificate
+        run: echo "${{ secrets.DB_SSL_CA }}" > ca.pem
+
+      - name: Run data pull
+        env:
+          USE_CLOUD_DB: "true"
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_SSL_CA: ca.pem
+        run: python fetch_steam_data.py
