@@ -23,7 +23,7 @@ Steam, Xbox, and Nintendo don't publish real sales figures — that data is prop
 ## Architecture
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌─────────────────┐
+┌──────────────┐     ┌──────────────┐     ┌──────────────────┐
 │  Steam API   │     │  SteamSpy    │     │  (top-played     │
 │ (game details│     │  API         │     │   game list)     │
 │  + players)  │     │              │     │                  │
@@ -31,30 +31,30 @@ Steam, Xbox, and Nintendo don't publish real sales figures — that data is prop
        │                    │
        └────────┬───────────┘
                  ▼
-       ┌───────────────────┐
+       ┌────────────────────┐
        │  fetch_steam_      │   Runs daily at 00:00 UTC
        │  data.py           │   via GitHub Actions
        └─────────┬──────────┘
                  ▼
-       ┌───────────────────┐
+       ┌────────────────────┐
        │  Aiven MySQL       │
        │  games_raw table   │
        └─────────┬──────────┘
                  ▼
-       ┌───────────────────┐
+       ┌────────────────────┐
        │  clean_data.py     │   Splits genres, parses dates,
        │                    │   filters non-game entries
        └─────────┬──────────┘
                  ▼
-       ┌───────────────────┐
+       ┌────────────────────┐
        │  Aiven MySQL       │
        │  games_clean table │
        └─────────┬──────────┘
                  ▼
-       ┌───────────────────┐
+       ┌─────────────────────┐
        │  app.py             │
        │  Streamlit Dashboard│
-       └───────────────────┘
+       └─────────────────────┘
 ```
 
 ## Tech Stack
@@ -134,4 +134,4 @@ The pipeline runs automatically every day at 00:00 UTC via GitHub Actions (`.git
 
 ---
 
-Built as a portfolio project to demonstrate end-to-end data pipeline design: ingestion, cloud storage, automated orchestration, transformation, and deployment — not just static analysis of a downloaded file.
+Built as a portfolio project to demonstrate end-to-end data pipeline design: ingestion, cloud storage, LLM utilization, automated orchestration, transformation, and deployment — not just static analysis of a downloaded file.
