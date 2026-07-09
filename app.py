@@ -18,7 +18,7 @@ load_dotenv()
 
 st.set_page_config(page_title="Steam Player Engagement Analytics", layout="wide")
 
-# --- Design tokens ---
+
 BG = "#12151C"
 SURFACE = "#1B1F2A"
 AMBER = "#FFB347"
@@ -137,9 +137,7 @@ def apply_theme(fig):
     fig.update_yaxes(gridcolor=GRID_COLOR, zerolinecolor=GRID_COLOR, color=MUTED)
     return fig
 
-# Categories that are non-game software occasionally picked up by SteamSpy's
-# lists (e.g. Blender, Photoshop-like tools) -- excluded from analysis since
-# they're not games and would skew genre-level comparisons.
+
 NON_GAME_GENRES = [
     "Animation & Modeling", "Design & Illustration", "Photo Editing",
     "Utilities", "Video Production", "Audio Production", "Software Training",
@@ -159,9 +157,7 @@ def get_db_config():
     try:
         has_cloud_secrets = "DB_HOST" in st.secrets
     except Exception:
-        # No secrets.toml file exists at all (e.g. running locally) --
-        # st.secrets raises rather than just returning False, so we catch
-        # that here and fall through to .env values instead.
+       
         has_cloud_secrets = False
 
     if has_cloud_secrets:
@@ -183,7 +179,7 @@ def get_db_config():
     }
 
 
-@st.cache_data(ttl=3600)  # re-fetch from DB at most once per hour
+@st.cache_data(ttl=3600) 
 def load_data():
     conn = mysql.connector.connect(**get_db_config())
     df = pd.read_sql("SELECT * FROM games_clean", conn)
@@ -242,7 +238,7 @@ Statistics:
         return f"(AI insights unavailable: {e})"
 
 
-# --- Load and filter data ---
+
 df = load_data()
 df_games = df[~df["genre"].isin(NON_GAME_GENRES)]
 
@@ -257,7 +253,7 @@ st.caption(
     "updated daily via an automated pipeline (Steam API + SteamSpy → MySQL)."
 )
 
-# --- Top-line metrics ---
+
 col1, col2, col3 = st.columns(3)
 col1.metric("Unique Games Tracked", df_games["app_id"].nunique())
 col2.metric("Genres Covered", df_games["genre"].nunique())
@@ -265,7 +261,7 @@ col3.metric("Total Snapshots Collected", df_games["pulled_at"].nunique())
 
 st.divider()
 
-# --- Genre comparison, with sample size shown for honesty ---
+
 st.subheader("Average Player Count by Genre")
 genre_stats = (
     df_games.groupby("genre")["current_players"]
@@ -291,7 +287,7 @@ st.caption(
 
 st.divider()
 
-# --- Price vs players ---
+
 st.subheader("Price vs Current Players")
 fig_price = px.scatter(
     df_games, x="price_usd", y="current_players", color="is_free",
@@ -308,7 +304,7 @@ st.caption(
 
 st.divider()
 
-# --- Top games ---
+
 st.subheader("Top 10 Games by Peak Concurrent Players")
 top_games = (
     df_games.groupby("name")["current_players"]
@@ -324,7 +320,7 @@ st.plotly_chart(fig_top, use_container_width=True)
 
 st.divider()
 
-# --- Free vs paid ---
+
 st.subheader("Free vs Paid: Average Player Count")
 free_vs_paid = (
     df_games.groupby("is_free")["current_players"]
@@ -344,7 +340,7 @@ st.plotly_chart(fig_fvp, use_container_width=True)
 
 st.divider()
 
-# --- AI-generated insights ---
+
 st.subheader("AI Analysis")
 api_key = get_gemini_api_key()
 
@@ -395,7 +391,7 @@ Median player count:
     "Refreshes at most once every 24 hours."
 )
 
-# --- Time trend placeholder ---
+
 st.subheader("Player Trends Over Time")
 unique_days = df_games["pulled_at"].dt.date.nunique()
 

@@ -1,9 +1,9 @@
--- Run this in phpMyAdmin's SQL tab, or via the mysql CLI
+
 
 CREATE DATABASE IF NOT EXISTS steam_analytics;
 USE steam_analytics;
 
--- Raw table: exactly what the API gives us, untouched
+
 CREATE TABLE IF NOT EXISTS games_raw (
     id INT AUTO_INCREMENT PRIMARY KEY,
     app_id INT NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS games_raw (
     UNIQUE KEY unique_pull (app_id, pulled_at)
 );
 
--- Clean table: we'll build this later once we see what needs fixing
+
 CREATE TABLE IF NOT EXISTS games_clean (
     id INT AUTO_INCREMENT PRIMARY KEY,
     app_id INT NOT NULL,

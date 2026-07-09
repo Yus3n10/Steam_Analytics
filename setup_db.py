@@ -18,8 +18,7 @@ DB_CONFIG = {
     "password": os.getenv("DB_PASSWORD"),
     "port": int(os.getenv("DB_PORT", 3306)),
     "ssl_ca": os.getenv("DB_SSL_CA", "ca.pem"),
-    # Note: no "database" key here — schema.sql creates the database itself,
-    # so we connect without selecting one first.
+
 }
 
 
@@ -27,7 +26,7 @@ def run_schema_file(filepath="schema.sql"):
     with open(filepath, "r") as f:
         sql_script = f.read()
 
-    # mysql-connector needs statements split and run one at a time
+  
     statements = [s.strip() for s in sql_script.split(";") if s.strip()]
 
     conn = mysql.connector.connect(**DB_CONFIG)

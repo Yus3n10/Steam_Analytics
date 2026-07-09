@@ -14,12 +14,10 @@ from datetime import datetime
 import mysql.connector
 from dotenv import load_dotenv
 
-# Load DB credentials from .env file (never hardcode passwords in code)
+
 load_dotenv()
 
-# USE_CLOUD_DB=true connects to Aiven (for GitHub Actions / production runs).
-# USE_CLOUD_DB=false (or unset) connects to your local XAMPP MySQL (for
-# testing on your own machine). This lets you use the same script for both.
+
 USE_CLOUD_DB = os.getenv("USE_CLOUD_DB", "false").lower() == "true"
 
 if USE_CLOUD_DB:
@@ -29,7 +27,7 @@ if USE_CLOUD_DB:
         "password": os.getenv("DB_PASSWORD"),
         "database": os.getenv("DB_NAME"),
         "port": int(os.getenv("DB_PORT", 3306)),
-        "ssl_ca": os.getenv("DB_SSL_CA", "ca.pem"),  # Aiven requires SSL
+        "ssl_ca": os.getenv("DB_SSL_CA", "ca.pem"),  
     }
 else:
     DB_CONFIG = {
@@ -53,8 +51,8 @@ def get_popular_app_ids():
     not trusting its sales figures.
     """
     endpoints = [
-        {"request": "top100in2weeks"},  # trending right now
-        {"request": "top100forever"},   # all-time most played
+        {"request": "top100in2weeks"}, 
+        {"request": "top100forever"},   
     ]
 
     app_ids = set()
@@ -63,21 +61,18 @@ def get_popular_app_ids():
             response = requests.get("https://steamspy.com/api.php", params=params, timeout=15)
             response.raise_for_status()
             data = response.json()
-            # SteamSpy returns a dict keyed by app_id, e.g. {"730": {...}, "570": {...}}
+            
             for app_id_str in data.keys():
                 app_ids.add(int(app_id_str))
         except (requests.exceptions.RequestException, ValueError) as e:
             print(f"  [!] Failed to fetch {params['request']} from SteamSpy: {e}")
 
-        time.sleep(2)  # be polite to SteamSpy's servers between calls
+        time.sleep(2)  
 
     return list(app_ids)
 
 
-# --- CONFIG: which games to pull ---
-# Pulled dynamically from SteamSpy's top-played lists (see function above),
-# rather than hand-typed IDs. This will give roughly 150-200 unique games
-# since the two "top 100" lists overlap significantly.
+
 STARTER_APP_IDS = get_popular_app_ids()
 print(f"Pulled {len(STARTER_APP_IDS)} unique popular app IDs from SteamSpy.")
 
@@ -106,14 +101,12 @@ def get_app_details(app_id):
 
     details = app_data["data"]
 
-    # Some fields are missing depending on the game, so we use .get() with
-    # defaults everywhere instead of direct dictionary access (which would
-    # crash the script on missing keys).
+  
     genres_list = details.get("genres", [])
     genres_str = ", ".join([g["description"] for g in genres_list]) if genres_list else None
 
     price_info = details.get("price_overview", {})
-    price_usd = price_info.get("final", 0) / 100 if price_info else 0.0  # Steam gives cents
+    price_usd = price_info.get("final", 0) / 100 if price_info else 0.0  
 
     return {
         "app_id": app_id,
@@ -188,15 +181,13 @@ def main():
 
         details = get_app_details(app_id)
         if details is None:
-            continue  # skip games with no usable data
-
+            continue  
         player_count = get_current_players(app_id)
         details["current_players"] = player_count
 
         all_records.append(details)
 
-        # IMPORTANT: Steam will rate-limit or temporarily block you if you
-        # call too fast. This pause keeps you well under their limits.
+   
         time.sleep(1.5)
 
     save_to_database(all_records)

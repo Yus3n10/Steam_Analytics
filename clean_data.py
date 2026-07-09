@@ -60,8 +60,7 @@ def parse_release_date(date_str):
     try:
         return datetime.strptime(date_str, "%b %d, %Y").date()
     except ValueError:
-        # Some games show non-standard strings like "Coming soon" or a
-        # quarter/year only (e.g. "Q4 2026") -- these aren't real dates
+     
         return None
 
 
@@ -88,7 +87,7 @@ def clean_and_load():
             skipped_no_genre += 1
             continue
 
-        # Split "Action, RPG, Indie" into ["Action", "RPG", "Indie"]
+       
         genre_list = [g.strip() for g in row["genres"].split(",") if g.strip()]
 
         for genre in genre_list:
@@ -108,9 +107,7 @@ def clean_and_load():
     print(f"Skipped {skipped_no_genre} rows with no genre listed.")
     print(f"Prepared {len(clean_rows)} clean rows (one per game-genre pair).")
 
-    # Clear old clean data before reloading (games_clean is a derived table --
-    # always safe to rebuild it fully from games_raw, since games_raw is our
-    # source of truth)
+    
     write_cursor.execute("DELETE FROM games_clean")
 
     insert_query = """

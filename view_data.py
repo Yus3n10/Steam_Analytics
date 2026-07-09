@@ -23,7 +23,7 @@ DB_CONFIG = {
 
 def view_table(table_name="games_raw", limit=20):
     conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor(dictionary=True)  # dictionary=True gives column names
+    cursor = conn.cursor(dictionary=True)  
 
     cursor.execute(f"SELECT COUNT(*) as total FROM {table_name}")
     total = cursor.fetchone()["total"]
